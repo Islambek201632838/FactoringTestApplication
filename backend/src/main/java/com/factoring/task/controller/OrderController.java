@@ -19,58 +19,18 @@ import java.util.Map;
 public class OrderController {
     private final OrderService orderService;
     private final ValidationService validationService;
-
     @Autowired
     public OrderController(OrderService orderService, ValidationService validationService) {
         this.orderService = orderService;
         this.validationService = validationService;
     }
-
-    @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> listOrderDTO = orderService.getAllOrders();
-        return listOrderDTO.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(listOrderDTO);
-    }
     @PostMapping
     public ResponseEntity<?> createOrder(@Validated @RequestBody OrderDTO orderDTO, BindingResult bindingResult) {
-        // Validate user input
-        Map<String, String> errors = validationService.validateOrderDTO(orderDTO, bindingResult);
+        Map<String, String> errors = validationService.validateOrderDTO(orderDTO, bindingResult); // Validation user input
         if (!errors.isEmpty()) {
             return ResponseEntity.badRequest().body(errors);
         }
-
-        // Create the order
         OrderDTO createdOrder = orderService.createOrder(orderDTO);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getOrderById(@PathVariable int id) {
-        OrderDTO orderDTO = orderService.getOrderById(id);
-        return (orderDTO == null) ? ResponseEntity.notFound().build() : ResponseEntity.ok(orderDTO);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateOrder(@PathVariable int id, @Validated @RequestBody OrderDTO orderDTO, BindingResult bindingResult) {
-        Map<String, String> errors = validationService.validateOrderDTO(orderDTO, bindingResult);
-        if (!errors.isEmpty()) {
-            return ResponseEntity.badRequest().body(errors);
-        }
-
-        orderDTO.setId(id);
-        OrderDTO updateOrder = orderService.updateOrder(orderDTO);
-        return ResponseEntity.ok(updateOrder);
-
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById (@PathVariable int id) {
-        orderService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
-    }
-
-
-
-
-
 }
